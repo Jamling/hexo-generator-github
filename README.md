@@ -24,7 +24,7 @@ github:
 - **debug**: Whether print debug info
 - **cache_dir**: Github response cache dir
 - **user**: Github user name
-- **repos**: Result repositories, if *undefined*, return all repositories of user
+- **repos**: Result repositories, return all repositories of user if **undefined** in <var>_config.yml</var> 
 
 ## Helpers
 
@@ -35,7 +35,7 @@ If no repo assigned in page gh front-matter, the repo will set from <var>page.pa
 Sample:
 
 - page.path = p/Android-ORM/ => gh.repo = Android-ORM
-- page.path = en/p/Android-ORM/ => gh.repo = Android-ORM (The <var>hexo.config.language</var> must contains *en* in <var>_config.yml</var>)
+- page.path = en/p/Android-ORM/ => gh.repo = Android-ORM (The <var>hexo.config.language</var> must contains **en** in <var>_config.yml</var>)
 
 ### gh_repos
 
@@ -51,7 +51,7 @@ Option | Description | Default
 
 ### gh_contents
 
-Display github contents of repository
+Display github (**markdown file**) contents of repository
 
 ``` js
 {{ gh_contents({path: 'README'}) }}
