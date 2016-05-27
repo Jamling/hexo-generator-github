@@ -1,0 +1,36 @@
+{
+  "name": "hexo-generator-github",
+  "version": "0.0.1",
+  "description": "Github generator for Hexo.",
+  "main": "index",
+  "directories": {
+    "lib": "./lib"
+  },
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jamling/hexo-generator-github.git"
+  },
+  "homepage": "http://ieclipse.cn/",
+  "keywords": [
+    "hexo",
+    "generator",
+    "github"
+  ],
+  "author": {
+    "name": "Jamling",
+    "email": "li.jamling@gmail.com",
+    "url": "http://ieclipse.cn"
+  },
+  "license": "MIT",
+  "devDependencies": {
+  },
+  "dependencies": {
+    "github": "^0.2.4",
+    "lodash": "^4.6.1",
+    "urllib-sync": "^1.1.2"
+  },
+  "readme": "ERROR: No README data found!"
+}
