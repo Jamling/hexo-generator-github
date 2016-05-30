@@ -51,7 +51,7 @@ Sample:
 
 Return array of github user's repos
 
-``` html
+``` htmlbars
   {% for p in gh_repos() %}
     <!--<div class="col-sx-6 col-sm-6 col-md-6 col-lg-6">-->
       <div class="panel panel-default" id="project">
@@ -113,7 +113,7 @@ Option | Description | Default
 
 Return array of github repo releases
 
-``` html
+``` htmlbars
 {% for p in gh_releases() %}
 <div class="release">
   <div class="header">
