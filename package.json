@@ -1,6 +1,6 @@
 {
   "name": "hexo-generator-github",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Github generator for Hexo.",
   "main": "index",
   "directories": {
@@ -31,6 +31,5 @@
     "github": "^0.2.4",
     "lodash": "^4.6.1",
     "urllib-sync": "^1.1.2"
-  },
-  "readme": "ERROR: No README data found!"
+  }
 }
