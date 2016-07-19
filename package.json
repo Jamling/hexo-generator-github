@@ -1,6 +1,6 @@
 {
   "name": "hexo-generator-github",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "Github generator for Hexo.",
   "main": "index",
   "directories": {
