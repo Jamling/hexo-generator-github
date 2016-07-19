@@ -8,7 +8,17 @@ Github generator for [Hexo].
 $ npm install hexo-generator-github --save
 ```
 
-## Options
+## Usage
+
+hexo-generator-github can be used as helper/generator/console plugin. `hexo server` and `hexo generate` will call the generator of this plugin; A console command is provided to run this generator.
+
+``` bash
+$ hexo github [-r --replace]
+```
+
+If `-r` or `--replace` option assigned, the generator will call github api and replace the existing github cache.
+
+## Config
 
 ``` yaml
 github:
