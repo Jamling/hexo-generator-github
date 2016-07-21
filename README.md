@@ -37,7 +37,7 @@ github:
 - **repos**: Result repositories, return all repositories of user if **undefined** in <var>_config.yml</var> 
 
 ## Front-matter
-A `gh` front-maker is nessary in your page to generate github response.
+A `gh` front-matter is nessary in your page to generate github response.
 
 - gh.user the github user, default is github.user in <var>_config.yml</var>, see [gh_opts](#gh_opts)
 - gh.repo the github repo, default is fetched from url, see [gh_opts](#gh_opts)
@@ -93,7 +93,7 @@ Option | Description | Default
 Return github (**markdown file**) contents of repository
 
 ``` js
-{% page.content = gh_contents({path: 'README'}) %}
+{% set page.content = gh_contents({path: 'README'}) %}
 ```
 So the page content will be replaced of content of github.
 
