@@ -1,5 +1,7 @@
 ## hexo-generator-github
 
+[![Build Status](https://travis-ci.org/Jamling/hexo-generator-github.svg?branch=master)](https://travis-ci.org/Jamling/hexo-generator-github)
+
 Github generator for [Hexo].
 
 ## 安装
