@@ -1,6 +1,10 @@
 # hexo-generator-github
 
 [![Build Status](https://travis-ci.org/Jamling/hexo-generator-github.svg?branch=master)](https://travis-ci.org/Jamling/hexo-generator-github)
+[![node](https://img.shields.io/node/v/hexo-generator-github.svg)](https://www.npmjs.com/package/hexo-generator-github)
+[![npm downloads](https://img.shields.io/npm/dt/hexo-generator-github.svg)](https://www.npmjs.com/package/hexo-generator-github)
+[![npm version](https://img.shields.io/npm/v/hexo-generator-github.svg)](https://www.npmjs.com/package/hexo-generator-github)
+[![GitHub release](https://img.shields.io/github/release/jamling/hexo-generator-github.svg)](https://github.com/Jamling/hexo-generator-github/releases/latest)
 
 Github generator for [Hexo].
 
