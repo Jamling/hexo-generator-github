@@ -59,7 +59,7 @@ github:
 - **cache_dir**: Github response cache dir, you can run `hexo github -r` to remove all cache or remove files in cache manually to refresh cache again
 - **user**: Github user name
 - **repos**: Result repositories, return all(limit 100) repositories of user if **undefined** in <var>_config.yml</var> 
-- **token**: See ![New token](add_token.png) to generate token to grown up github api request limitation
+- **token**: See ![New token](https://raw.githubusercontent.com/Jamling/hexo-generator-github/master/add_token.png) to generate token to grown up github api request limitation
 
 ## Front-matter
 A `gh` front-matter is nessary in your page to generate github response.
