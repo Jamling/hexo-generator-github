@@ -1,12 +1,11 @@
 'use strict';
 
-var fs = require('fs');
-var pathFn = require('path');
-var util = require('util');
-var _ = require('lodash');
-// npm install urllib-sync
-var request = require('urllib-sync').request;
-// see https://github.com/node-modules/urllib
+const fs = require('fs');
+const pathFn = require('path');
+const util = require('util');
+const _ = require('lodash');
+const axios = require('axios');
+const useSync = false;
 
 //--------> Init
 if (!hexo.config.github) {
@@ -15,22 +14,55 @@ if (!hexo.config.github) {
 }
 
 let _config = hexo.config.github;
-let _apiHeader = {}
+
+const apiOpts = {
+  baseURL: 'https://api.github.com',
+  dataType: 'json',
+  timeout: _config.timeout || 15000,
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded',
+  },
+  data: {}
+}
 if (_config.token) {
-  _apiHeader['Authorization'] = 'token ' + _config.token
+  apiOpts.headers['Authorization'] = 'token ' + _config.token
 }
-
-function SyncGithubAPI(opts) {
-  this.host = "https://api.github.com/";
-  this.opts = opts || {
-    dataType: 'json',
-    timeout: _config.timeout || 15000,
-    headers: _apiHeader,
-    data: {}
+const api = axios.create(apiOpts);
+api.interceptors.request.use(function (config) {
+  hexo.log.info('request:', config.url)
+  return config;
+})
+api.interceptors.response.use(function (response) {
+  if (response.status == 200) {
+    if (_config.debug) {
+      var limit = 0;
+      if (response.headers['x-ratelimit-limit']) {
+        limit = response.headers['x-ratelimit-limit'];
+      }
+      var remain = 0;
+      if (response.headers['x-ratelimit-remaining']) {
+        remain = response.headers['x-ratelimit-remaining'];
+      }
+      var reset = '';
+      if (response.headers['x-ratelimit-reset']) {
+        reset = new Date(response.headers['x-ratelimit-reset'] * 1000).toISOString();
+      }
+      hexo.log.info('rate limit: %d,remaining: %d,reset at: %s', limit, remain, reset);
+      hexo.log.debug('response:', response.data);
+    }
+    return response.data;
+  } else {
+    hexo.log.w(`Error code=${response.status}, msg=${response.statusText}`)
+    return Promise.reject(response);
   }
-}
+}, function (error) {
+  // Any status codes that falls outside the range of 2xx cause this function to trigger
+  // Do something with response error
+  hexo.log.w('Error', error);
+  return Promise.reject(error);
+});
 
-SyncGithubAPI.prototype.reqSync = function (path, options) {
+function reqSync(path, options) {
   var o = options || {};
   var url = this.host + path;
   hexo.log.info("request:" + url)
@@ -62,9 +94,6 @@ SyncGithubAPI.prototype.reqSync = function (path, options) {
   }
   return res.data;
 }
-
-var gh = new SyncGithubAPI();
-
 //--------> Internal 
 function mkdirsSync(dirpath, mode) {
   if (!fs.existsSync(dirpath)) {
@@ -208,14 +237,20 @@ function gh_repos(page) {
   }
 
   function fetchRepo(name) {
-    var repo = gh.reqSync(util.format('repos/%s/%s', user, name));
+    var repo = reqSync(util.format('repos/%s/%s', user, name));
     return repo;
+  }
+
+  function writeRepos(repos) {
+    var str = JSON.stringify(repos);
+    gh_write_cache(p, str);
   }
 
   var repos = [];
   var cache = gh_read_cache(p);
   if (cache) {
     repos = JSON.parse(cache);
+    hexo.log.info('load %d repos from cache', repos.length);
     return repos;
   }
 
@@ -223,21 +258,37 @@ function gh_repos(page) {
   var config_repos = _config.repos;
   if (config_repos && Array.isArray(config_repos) && config_repos.length > 0) {
     // get repos of config
+    var gets = []
     config_repos.forEach(function (name) {
-      var repo = fetchRepo(name);
-      if (repo) {
-        replaceRepo(repos, repo);
+      if (useSync) {// use sync
+        var repo = fetchRepo(name);
+        if (repo) {
+          replaceRepo(repos, repo);
+        } else {
+          hexo.log.w('Warning! ' + user + '/' + name + ' not fetched')
+        }
       } else {
-        hexo.log.w('Warning! ' + user + '/' + name + ' not fetched')
+        gets.push(api.get(util.format('repos/%s/%s', user, name)));
       }
     });
+    if (!useSync) {
+      axios.all(gets).then(axios.spread(function (...array) {
+        repos = array;
+        writeRepos(repos)
+      }));
+    }
   } else {
     var url = util.format('users/%s/repos?per_page=100', user);
-    repos = gh.reqSync(url);
+    if (useSync) {
+      repos = reqSync(url);
+    }
+    else {
+      api.get(url).then(res => {
+        repos = res;
+        writeRepos(repos);
+      })
+    }
   }
-  var str = JSON.stringify(repos);
-  gh_write_cache(p, str);
-  hexo.log.info('load %d repos', repos.length);
   return repos;
 }
 
@@ -275,16 +326,23 @@ function gh_contents(page) {
 
   var url = util.format('repos/%s/%s/contents/%s', user, name, path);
   hexo.log.info("no cache, and try load from : " + url);
-  var repo = gh.reqSync(url, {
-    data: {
-      'ref': ref
+  if (useSync) {
+    var repo = reqSync(url, {
+      data: {
+        'ref': ref
+      }
+    });
+    if (repo && repo.content) {
+      var md = new Buffer(repo.content, repo.encoding).toString();
+      md = hexo.render.renderSync({ text: md, engine: 'markdown' });
+      gh_write_cache(p, md);
+      return md;
     }
-  });
-  if (repo && repo.content) {
-    var md = new Buffer(repo.content, repo.encoding).toString();
-    md = hexo.render.renderSync({text: md, engine: 'markdown'});
-    gh_write_cache(p, md);
-    return md;
+  } else {
+    api.get(url, { data: { 'ref': ref } }).then(res => {
+      var md = new Buffer(res.content, res.encoding).toString();
+      gh_write_cache(p, md);
+    });
   }
   return '';
 }
@@ -305,8 +363,14 @@ function gh_releases(page) {
   }
 
   var url = util.format('repos/%s/%s/releases', user, name);
-  var repo = gh.reqSync(url);
-  gh_write_cache(p, JSON.stringify(repo));
+  if (useSync) {
+    var repo = reqSync(url);
+    gh_write_cache(p, JSON.stringify(repo));
+  } else {
+    api.get(url).then(res => {
+      gh_write_cache(p, JSON.stringify(res));
+    });
+  }
   return repo;
 };
 
@@ -325,11 +389,6 @@ function gh_edit_link(page) {
 // copy from hexo-theme-nova project.js
 // project layout left nav tree
 function gh_aside_nav(options) {
-  var projects = this.site.data.projects;
-  if (!projects) {
-    hexo.log.error('Warning! No projects.yml in _data directory of site');
-    return;
-  }
   var o = options || {};
   var parent_color = o.hasOwnProperty('parent_color') ? o.parent_color : null;
   var child_color = o.hasOwnProperty('child_color') ? o.child_color : null;
@@ -339,10 +398,27 @@ function gh_aside_nav(options) {
   var paths = this.page.path.split('/');
   var name = this.page.gh ? this.page.gh.repo : paths[paths.length - 2];
   var file = paths[paths.length - 1];
-  var p = projects[name];
-  if (!p) {
-    hexo.log.error('Warning! No ' + name + " project configurated in projects.yml");
-    return;
+
+  function autonav(page) {
+    var dir0 = pathFn.join(hexo.base_dir, _config.cache_dir);
+    var dir1 = pathFn.resolve(pathFn.join(dir0, page.path), '..');
+    var dir2 = pathFn.resolve(pathFn.join(hexo.source_dir, page.path), '..');
+    var fs1 = fs.readdirSync(dir1) || [];
+    var fs2 = fs.readdirSync(dir2) || [];
+    var fs11 = new Set;
+    fs1.forEach(item => {
+      fs11.add(pathFn.basename(item, pathFn.extname(item)));
+    });
+    fs2.forEach(item => {
+      fs11.add(pathFn.basename(item, pathFn.extname(item)));
+    });
+    const menus = { ..._config.navs };
+    for (let k in menus) {
+      if (!fs11.has(k)) {
+        delete menus[k]
+      }
+    }
+    return menus;
   }
 
   function Node() { // bootstrap-treeview refer to: http://www.htmleaf.com/jQuery/Menu-Navigation/201502141379.html
@@ -380,6 +456,14 @@ function gh_aside_nav(options) {
       return i18n;
     }
     return _self.__(key);
+  }
+
+  let p = undefined;
+  var projects = this.site.data.projects;
+  if (projects && projects[name]) {
+    p = projects[name];
+  } else {
+    p = autonav(this.page);
   }
 
   var data = [];
@@ -533,7 +617,6 @@ hexo.extend.generator.register('github', function (locals) {
 // }, 9);
 
 //------------> console
-var c = require('./lib/console.js');
 hexo.extend.console.register('github', 'Generate github pages', {
   options: [{
     name: '-r, --replace',

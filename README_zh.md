@@ -6,7 +6,7 @@
 [![npm version](https://img.shields.io/npm/v/hexo-generator-github.svg)](https://www.npmjs.com/package/hexo-generator-github)
 [![GitHub release](https://img.shields.io/github/release/jamling/hexo-generator-github.svg)](https://github.com/Jamling/hexo-generator-github/releases/latest)
 
-Github generator for [Hexo].
+一款将Github上的项目文档复制到[Hexo]博客的插件，特别适用于项目博客站点.
 
 ## 安装
 
@@ -28,19 +28,37 @@ $ hexo github [-r --replace]
 
 ``` yaml
 github:
-  debug: true
-  cache_dir: gh_cache
-  user: Jamling
-  repos: 
+  debug: true # enable debug to log github api request/response
+  user: Jamling # your github user name
+  timeout: 60000 # set the github api request timeout
+  token: your_token # 添加token，github api的60次的访问限制将上升到5000，
+  cache_dir: gh_cache # the response of github api will store under the directory.
+  repos: # request following repositories, otherwise, all repositories (limit 100) of user will be requested.
+    - SmartIM4Eclipse
+    - SmartIM4IntelliJ
     - hexo-theme-nova
-    - hexo-generator-github
     - hexo-generator-i18n
+    - hexo-generator-github
+    - hexo-generator-index2
+    - hexo-filter-highlight
+    - Android-ORM
+    - eclipse-explorer
+    - QuickAF
+  navs: # project page left default nav menu, you can config for each project in ${blog}/_data/projects.yml
+    overview: index.html
+    index: index.html
+    start: start.html
+    release: release.html
+    download: download.html
+    userguide: userguide.html
+    change: change.html
 ```
 
 - **debug**: 是否在控制台输出debug信息
 - **cache_dir**: Github缓存目录
 - **user**: Github用户名
 - **repos**: Github项目列表，如果未配置此项，那么`gh_repos()`将返回用户所有的项目
+- **token**: 参考 ![New token](add_token.png) 来生成token以突破github api访问次数限制
 
 ## Front-matter
 本插件引入了一个名为`gh`的front-matter来指引如何生成github相关的页面。
@@ -68,21 +86,22 @@ github:
 返回github上用户拥有的项目（Array）
 
 ``` htmlbars
-  {% for p in gh_repos() %}
+  {%- for p in gh_repos() %}
     <!--<div class="col-sx-6 col-sm-6 col-md-6 col-lg-6">-->
-      <div class="panel panel-default" id="project">
+      <div class="panel panel-default project">
         <div class="panel-heading">
-        
           <h3>
-          <a href="https://github.com/{{p.owner.login}}/">{{p.owner.login}}</a>
-          /
-          <a href="./{{ p.name }}"> {{ p.name }}</a>
+            <span class="icon nova-repo black-text"></span>
+            <a href="./{{ p.name }}" target="_blank" title="{{p.name}}"> {{ p.name }}</a>
+            <a href="https://github.com/{{p.owner.login}}/{{p.name}}" target="_blank" title="view on github"><span aria-hidden="true" class="icon nova-github right black-text"></span></a>
           </h3>
         </div>
         <div class="panel-body">
           <p>{{ p.description }}</p>
         </div>
         <div class="panel-footer">
+          <iframe src="https://ghbtns.com/github-btn.html?user={{p.owner.login}}&repo={{p.name}}&&type=star&count=true" class="github-iframe" height="20" width="110"></iframe>
+          <iframe src="https://ghbtns.com/github-btn.html?user={{p.owner.login}}&repo={{p.name}}&&type=fork&count=true" class="github-iframe" height="20" width="110"></iframe>
         </div>
       </div>
     <!--</div>-->
@@ -101,22 +120,7 @@ github:
 示例（设置hexo页面的内容与github项目中某个文件的内容）：
 
 ``` js
-{% set page.content = gh_contents({path: 'README'}) %}
-```
-
-Option | Description | Default
---- | --- | ---
-`user` | Github user | <var>config.github.user</var>
-`repo` | Github repo | <var>page.gh.repo</var>
-`path` | Github content path | README
-`ref` | Github reference | master
-
-### gh_edit
-
-返回github项目中的(**markdown文件**)内容的编辑地址（String）
-
-``` js
-{{ gh_edit({path: 'README'}) }}
+{% set page.content = gh_contents() %}
 ```
 
 Option | Description | Default
@@ -156,6 +160,22 @@ Option | Description | Default
 --- | --- | ---
 `user` | Github user | <var>config.github.user</var>
 `repo` | Github repo | <var>page.gh.repo</var>
+
+### gh_edit_link
+
+返回github项目中的(**markdown文件**)内容的编辑地址（String）
+
+``` js
+{{ gh_edit_link() }}
+```
+
+Option | Description | Default
+--- | --- | ---
+`user` | Github user | <var>config.github.user</var>
+`repo` | Github repo | <var>page.gh.repo</var>
+`path` | Github content path | README
+`ref` | Github reference | master
+
 
 ## Reference
 
