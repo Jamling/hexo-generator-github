@@ -58,7 +58,7 @@ github:
 - **cache_dir**: Github缓存目录
 - **user**: Github用户名
 - **repos**: Github项目列表，如果未配置此项，那么`gh_repos()`将返回用户所有的项目
-- **token**: 参考 ![New token](add_token.png) 来生成token以突破github api访问次数限制
+- **token**: 参考 ![New token](https://raw.githubusercontent.com/Jamling/hexo-generator-github/master/add_token.png) 来生成token以突破github api访问次数限制
 
 ## Front-matter
 本插件引入了一个名为`gh`的front-matter来指引如何生成github相关的页面。
