@@ -1,6 +1,6 @@
 {
   "name": "hexo-generator-github",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Github generator for Hexo.",
   "main": "index",
   "directories": {
@@ -13,7 +13,7 @@
     "type": "git",
     "url": "git+https://github.com/Jamling/hexo-generator-github.git"
   },
-  "homepage": "http://ieclipse.cn/",
+  "homepage": "https://www.ieclipse.cn/p",
   "keywords": [
     "hexo",
     "generator",
@@ -22,7 +22,7 @@
   "author": {
     "name": "Jamling",
     "email": "li.jamling@gmail.com",
-    "url": "http://ieclipse.cn"
+    "url": "https://wwww.ieclipse.cn/p"
   },
   "license": "MIT",
   "devDependencies": {},
