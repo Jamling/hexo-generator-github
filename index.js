@@ -341,6 +341,7 @@ function gh_contents(page) {
   } else {
     api.get(url, { data: { 'ref': ref } }).then(res => {
       var md = new Buffer(res.content, res.encoding).toString();
+      md = hexo.render.renderSync({ text: md, engine: 'markdown' });
       gh_write_cache(p, md);
     });
   }
@@ -403,8 +404,30 @@ function gh_aside_nav(options) {
     var dir0 = pathFn.join(hexo.base_dir, _config.cache_dir);
     var dir1 = pathFn.resolve(pathFn.join(dir0, page.path), '..');
     var dir2 = pathFn.resolve(pathFn.join(hexo.source_dir, page.path), '..');
-    var fs1 = fs.readdirSync(dir1) || [];
-    var fs2 = fs.readdirSync(dir2) || [];
+
+    var fs1 = [], fs2 = [];
+    if (fs.existsSync(dir1)) {
+      fs1 = fs.readdirSync(dir1) || [];
+    }
+    if (fs.existsSync(dir2)) {
+      fs2 = fs.readdirSync(dir2) || [];
+    }
+
+    if (getLang(page)) {
+      if (fs1.length == 0) {
+        dir1 = pathFn.resolve(pathFn.join(dir0, page.path.substring(page.lang.length + 1)), '..');
+        if (fs.existsSync(dir1)) {
+          fs1 = fs.readdirSync(dir1) || [];
+        }
+      }
+      if (fs2.length == 0) {
+        dir2 = pathFn.resolve(pathFn.join(hexo.source_dir, page.path.substring(page.lang.length + 1)), '..');
+        if (fs.existsSync(dir2)) {
+          fs2 = fs.readdirSync(dir2) || [];
+        }
+      }
+    }
+
     var fs11 = new Set;
     fs1.forEach(item => {
       fs11.add(pathFn.basename(item, pathFn.extname(item)));
@@ -573,7 +596,6 @@ hexo.extend.generator.register('github', function (locals) {
   var cacheDir = pathFn.join("./", cache_dir);
   if (replace) {
     rmdirsSync(cacheDir);
-    return;
   }
   if (!fs.existsSync(cacheDir)) {
     mkdirsSync(cacheDir);
